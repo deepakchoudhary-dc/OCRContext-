@@ -14,15 +14,25 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 logging.getLogger("torch").setLevel(logging.ERROR)
 
-from parsers.document_parser import parse_document, SUPPORTED_EXTENSIONS
-from parsers.chunker import chunk_text
-from agent.crewai_agent import CrewAIAgent
+try:
+    from parsers.document_parser import parse_document, SUPPORTED_EXTENSIONS
+    from parsers.chunker import chunk_text
+    from agent.crewai_agent import CrewAIAgent
+except ImportError as e:
+    st.error(f"Import error: {e}")
+    st.error("Please ensure all dependencies are installed. This may be due to missing system dependencies on Streamlit Cloud.")
+    st.stop()
 
 UPLOAD_DIR = os.path.join('data', 'uploads')
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-st.title('Local Document QA with OCR, Embeddings, and LLM (Qwen3:1.7b)')
-st.write('Upload a document and ask questions. All processing is local!')
+st.title('OCRContext - Document QA with Local LLM')
+st.write('Upload a document and ask questions. **Note: Full functionality requires local deployment.**')
+
+# Cloud deployment notice
+if os.path.exists('/mount'):  # Streamlit Cloud indicator
+    st.warning('⚠️ **Cloud Demo Mode**: OCR and local LLM features are limited. For full functionality including OCR and Ollama LLM, please run locally.')
+    st.info('📝 **What works in cloud**: Text-based PDFs and DOCX files can be processed, but answers will be limited without local LLM.')
 
 if 'agent' not in st.session_state:
     st.session_state['agent'] = CrewAIAgent()
