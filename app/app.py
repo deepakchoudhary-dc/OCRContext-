@@ -1,7 +1,13 @@
 import streamlit as st
 import os
+import sys
 import warnings
 import logging
+
+# Add project root to Python path for Streamlit Cloud compatibility
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 # Suppress torch warnings and other non-critical warnings
 warnings.filterwarnings("ignore", category=UserWarning)
