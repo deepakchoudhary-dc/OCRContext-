@@ -21,33 +21,33 @@ def parse_document(file_path: str) -> str:
 
 def _parse_pdf(file_path: str) -> str:
     try:
-        import pdfplumber
+        from pdfplumber import open as pdfplumber_open
         text = ""
-        with pdfplumber.open(file_path) as pdf:
+        with pdfplumber_open(file_path) as pdf:
             for page in pdf.pages:
                 text += page.extract_text() or ''
         if text.strip():
             return text
-        else:
-            return "PDF appears to be scanned. OCR functionality requires system dependencies not available in this deployment."
-    except ImportError:
-        return "PDF parsing requires pdfplumber. Please install dependencies."
-    except Exception as e:
-        return f"Error parsing PDF: {str(e)}"
+    except Exception:
+        pass
+    # Fallback to OCR if text extraction fails
+    from pdf2image import convert_from_path
+    return _ocr_images(convert_from_path(file_path))
 
 def _parse_docx(file_path: str) -> str:
-    try:
-        from docx import Document
-        doc = Document(file_path)
-        return '\n'.join([para.text for para in doc.paragraphs])
-    except ImportError:
-        return "DOCX parsing requires python-docx. Please install dependencies."
-    except Exception as e:
-        return f"Error parsing DOCX: {str(e)}"
+    from docx import Document
+    doc = Document(file_path)
+    return '\n'.join([para.text for para in doc.paragraphs])
 
 def _parse_image(file_path: str) -> str:
-    return "Image OCR requires system dependencies (Tesseract) not available in this cloud deployment. Please use text-based documents."
+    from PIL import Image
+    img = Image.open(file_path)
+    return _ocr_images([img])
 
 def _ocr_images(images: List[object]) -> str:
-    return "OCR functionality requires system dependencies (Tesseract) not available in this cloud deployment."
+    import pytesseract
+    text = ''
+    for img in images:
+        text += pytesseract.image_to_string(img) + '\n'
+    return text.strip()
  

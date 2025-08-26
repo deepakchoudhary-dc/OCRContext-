@@ -1,38 +1,25 @@
 import streamlit as st
 import os
-import sys
 import warnings
 import logging
-
-# Add project root to Python path for Streamlit Cloud compatibility
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
 
 # Suppress torch warnings and other non-critical warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 logging.getLogger("torch").setLevel(logging.ERROR)
 
-try:
-    from parsers.document_parser import parse_document, SUPPORTED_EXTENSIONS
-    from parsers.chunker import chunk_text
-    from agent.crewai_agent import CrewAIAgent
-except ImportError as e:
-    st.error(f"Import error: {e}")
-    st.error("Please ensure all dependencies are installed. This may be due to missing system dependencies on Streamlit Cloud.")
-    st.stop()
+from parsers.document_parser import parse_document, SUPPORTED_EXTENSIONS
+from parsers.chunker import chunk_text
+from agent.crewai_agent import CrewAIAgent
 
 UPLOAD_DIR = os.path.join('data', 'uploads')
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 st.title('OCRContext - Document QA with Local LLM')
-st.write('Upload a document and ask questions. **Note: Full functionality requires local deployment.**')
+st.write('🚀 Upload a document and ask questions. OCR and document processing work fully on this deployment!')
 
-# Cloud deployment notice
-if os.path.exists('/mount'):  # Streamlit Cloud indicator
-    st.warning('⚠️ **Cloud Demo Mode**: OCR and local LLM features are limited. For full functionality including OCR and Ollama LLM, please run locally.')
-    st.info('📝 **What works in cloud**: Text-based PDFs and DOCX files can be processed, but answers will be limited without local LLM.')
+# Railway deployment info
+st.info('📋 **What works**: PDF text extraction, DOCX processing, OCR for images, document chunking, and semantic search. LLM responses require external Ollama or show demo message.')
 
 if 'agent' not in st.session_state:
     st.session_state['agent'] = CrewAIAgent()
